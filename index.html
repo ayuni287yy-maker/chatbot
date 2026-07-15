@@ -189,7 +189,7 @@
         })
       });
       const data = await response.json();
-      const reply = data.reply || "Maaf, tidak ada jawaban.";
+const reply = data.reply || `[ERROR] ${data.error || "tidak ada jawaban"}`;
       messages.push({ role: "assistant", text: reply, time: currentTime() });
     } catch (err) {
       messages.push({ role: "assistant", text: "Terjadi gangguan saat menghubungi asisten. Coba lagi.", time: currentTime() });

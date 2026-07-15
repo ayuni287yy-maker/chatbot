@@ -3,7 +3,11 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { messages } = req.body;
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return res.status(500).json({ error: "ANTHROPIC_API_KEY belum diatur di Environment Variables Vercel" });
+  }
+
+  const { messages } = req.body || {};
 
   if (!messages || !Array.isArray(messages)) {
     return res.status(400).json({ error: "Field 'messages' wajib diisi (array)" });
@@ -18,7 +22,7 @@ export default async function handler(req, res) {
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-5",
+        model: "claude-sonnet-4-6",
         max_tokens: 1000,
         messages: messages,
       }),
@@ -27,13 +31,13 @@ export default async function handler(req, res) {
     const data = await response.json();
 
     if (!response.ok) {
-      return res.status(response.status).json({ error: data.error?.message || "Gagal menghubungi Claude API" });
+      return res.status(response.status).json({ error: `API Error (${response.status}): ${data.error?.message || JSON.stringify(data)}` });
     }
 
     const reply = data.content?.map((c) => c.text || "").join("\n") || "";
 
     return res.status(200).json({ reply });
   } catch (err) {
-    return res.status(500).json({ error: "Terjadi kesalahan pada server" });
+    return res.status(500).json({ error: `Server Error: ${err.message}` });
   }
 }
